@@ -31,7 +31,7 @@ func Status(c echo.Context) error {
 		})
 	}
 
-	user, err := db.GetUserData(req.National)
+	user, err := db.FetchUserData(req.National)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{
 			"error": "User not found",

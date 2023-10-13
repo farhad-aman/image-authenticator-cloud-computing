@@ -41,7 +41,7 @@ func InitPG() error {
 	return nil
 }
 
-func GetUserData(nationalID string) (*User, error) {
+func FetchUserData(nationalID string) (*User, error) {
 	query := "SELECT name, email, national, ip, state FROM users WHERE national = $1"
 
 	var user User
