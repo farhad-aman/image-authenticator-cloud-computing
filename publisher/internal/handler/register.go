@@ -1,15 +1,14 @@
 package handler
 
 import (
-	"encoding/json"
-	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/db"
+	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/datastore"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"os"
 )
 
-type RegistrationData struct {
+type RegisterRequest struct {
 	Name     string `json:"name" validate:"required,max=50"`
 	Email    string `json:"email" validate:"required,email"`
 	National string `json:"national" validate:"required,numeric,max=10"`
@@ -19,27 +18,35 @@ type RegistrationData struct {
 }
 
 func Register(c echo.Context) error {
-	var data RegistrationData
-	err := json.NewDecoder(c.Request().Body).Decode(&data)
-	if err != nil {
+	var req RegisterRequest
+	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Failed to parse JSON data",
+			"error":  "Failed to parse JSON data",
+			"detail": err.Error(),
 		})
 	}
-	data.IP = c.RealIP()
+	req.IP = c.RealIP()
 
 	validate := validator.New()
-	if err := validate.Struct(data); err != nil {
+	if err := validate.Struct(req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error":   "Validation failed",
 			"details": err.(validator.ValidationErrors),
 		})
 	}
 
+	err := datastore.SaveUserData(req.Name, req.Email, datastore.EncodeNationalID(req.National), req.IP)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error":  "Failed to save user data in the database",
+			"detail": err.Error(),
+		})
+	}
+
 	accessKey := os.Getenv("S3_ACCESS_KEY")
 	secretKey := os.Getenv("S3_SECRET_KEY")
 
-	err = db.UploadToS3([]byte(data.Image1), db.EncodeNationalID(data.National)+"-1", accessKey, secretKey)
+	err = datastore.UploadToS3([]byte(req.Image1), datastore.EncodeNationalID(req.National)+"-1", accessKey, secretKey)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error":   "Failed to upload image1 to S3",
@@ -47,7 +54,7 @@ func Register(c echo.Context) error {
 		})
 	}
 
-	err = db.UploadToS3([]byte(data.Image2), db.EncodeNationalID(data.National)+"-2", accessKey, secretKey)
+	err = datastore.UploadToS3([]byte(req.Image2), datastore.EncodeNationalID(req.National)+"-2", accessKey, secretKey)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error":   "Failed to upload image2 to S3",
@@ -55,10 +62,11 @@ func Register(c echo.Context) error {
 		})
 	}
 
-	err = db.SaveUserData(data.Name, data.Email, data.National, data.IP)
+	err = datastore.SendNationalToRabbit(datastore.EncodeNationalID(req.National))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to save user data in the database",
+			"error":   "Failed to send national ID to RabbitMQ",
+			"details": err.Error(),
 		})
 	}
 

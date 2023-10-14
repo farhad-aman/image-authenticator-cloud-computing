@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/db"
+	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/datastore"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -31,7 +31,7 @@ func Status(c echo.Context) error {
 		})
 	}
 
-	user, err := db.FetchUserData(req.National)
+	user, err := datastore.FetchUserData(req.National)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{
 			"error": "User not found",

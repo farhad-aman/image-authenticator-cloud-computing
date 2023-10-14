@@ -1,4 +1,4 @@
-package db
+package datastore
 
 import (
 	"encoding/base64"

@@ -1,4 +1,4 @@
-package db
+package datastore
 
 import (
 	"database/sql"
@@ -60,8 +60,7 @@ func FetchUserData(nationalID string) (*User, error) {
 	return &user, nil
 }
 
-func SaveUserData(name, email, nationalID, ip string) error {
-	hashedNationalID := EncodeNationalID(nationalID)
-	_, err := db.Exec("INSERT INTO users (name, email, national, ip, state) VALUES ($1, $2, $3, $4, $5)", name, email, hashedNationalID, ip, "pending")
+func SaveUserData(name, email, national, ip string) error {
+	_, err := db.Exec("INSERT INTO users (name, email, national, ip, state) VALUES ($1, $2, $3, $4, $5)", name, email, national, ip, "pending")
 	return err
 }

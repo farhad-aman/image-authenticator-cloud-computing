@@ -1,29 +1,39 @@
 package main
 
 import (
-	"fmt"
-	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/db"
+	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/datastore"
 	"github.com/farhad-aman/image-authenticator-cloud-computing/publisher/internal/handler"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"os"
+	"log"
 )
 
 func main() {
-	err := db.InitPG()
+	err := datastore.InitPG()
 	if err != nil {
-		fmt.Println("Error initializing database:", err)
-		os.Exit(1)
+		log.Fatalf("Error initializing database: %v", err)
 	}
+
+	err = datastore.InitRabbitMQ()
+	if err != nil {
+		log.Fatalf("Failed to initialize RabbitMQ connection: %v", err)
+	}
+	defer func() {
+		err := datastore.Rabbit.Close()
+		if err != nil {
+			log.Printf("Error occurred while closing RabbitMQ connection: %v", err)
+		}
+	}()
 
 	e := echo.New()
 	e.Use(middleware.CORS())
 	e.POST("/register", handler.Register)
 	e.GET("/status", handler.Status)
-	err = e.Start(":8080")
-	if err != nil {
-		fmt.Println("Error starting server:", err)
 
-		os.Exit(1)
+	port := ":8080"
+	log.Printf("Server listening on port %s...\n", port)
+
+	if err := e.Start(port); err != nil {
+		log.Fatalf("Error starting server: %v", err)
 	}
 }
