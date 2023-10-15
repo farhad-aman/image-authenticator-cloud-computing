@@ -1,19 +1,18 @@
 import base64
-from io import BytesIO
-from PIL import Image
 
 import requests
 
-url = "http://localhost:8080/register"
+# url = "http://localhost:8080/register"
+url = "http://128.140.100.19:8080/register"
 
-image1_file = "4.jpg"
+image1_file = "1.jpg"
 with open(image1_file, 'rb') as image_file:
     encoded_string1 = base64.b64encode(image_file.read()).decode('utf-8')
 image2_file = "3.jpg"
 with open(image2_file, 'rb') as image_file:
     encoded_string2 = base64.b64encode(image_file.read()).decode('utf-8')
 
-national = "14"
+national = "2"
 
 payload = {
     "name": "John Doe",
