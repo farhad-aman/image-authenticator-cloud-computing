@@ -100,7 +100,24 @@ def init_pg():
 pg_connection = init_pg()
 
 
-def reject_user(national: str):
+def get_email(national: str):
+    if pg_connection is None:
+        return None
+    try:
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT email FROM users WHERE national = %s", (national,))
+            email = cursor.fetchone()
+            if email:
+                return email[0]
+            else:
+                logging.error(f"Error: No user found with national ID: {national}")
+                return None
+    except psycopg2.Error as e:
+        logging.error(f"Error: Unable to fetch email from the database. {e}")
+        return None
+
+
+def reject_user(national: str, email_address: str):
     if pg_connection is None:
         return False
     try:
@@ -108,6 +125,8 @@ def reject_user(national: str):
             cursor.execute("UPDATE users SET state = 'rejected' WHERE national = %s", (national,))
             pg_connection.commit()
         logging.info(f"User with national ID {national} rejected successfully")
+        if email_address:
+            send_email("Your Image Authentication Request Rejected.", email_address)
         return True
     except psycopg2.Error as e:
         print("Error: Unable to reject user")
@@ -115,7 +134,7 @@ def reject_user(national: str):
         return False
 
 
-def accept_user(national: str):
+def accept_user(national: str, email_address: str):
     if pg_connection is None:
         return False
     try:
@@ -123,6 +142,8 @@ def accept_user(national: str):
             cursor.execute("UPDATE users SET state = 'accepted' WHERE national = %s", (national,))
             pg_connection.commit()
         logging.info(f"User with national ID {national} accepted successfully")
+        if email_address:
+            send_email("Your Image Authentication Request Accepted.", email_address)
         return True
     except psycopg2.Error as e:
         print("Error: Unable to accept user")
@@ -130,21 +151,45 @@ def accept_user(national: str):
         return False
 
 
+def send_email(message: str, receiver: str):
+    domain = "sandboxe347ff0a3f0240239da6f835176d38bf.mailgun.org"
+    api_key = "7ba7dec521a2f17974c46c43158668c3-5465e583-dc962af4"
+    url = f"https://api.mailgun.net/v3/{domain}/messages"
+    try:
+        response = requests.post(
+            url,
+            auth=("api", api_key),
+            data={
+                "from": f"Image Authenticator <mailgun@{domain}>",
+                "to": [receiver],
+                "subject": "Image Authentication Result",
+                "text": message
+            }
+        )
+        if response.status_code == 200:
+            logging.info("Email sent successfully.")
+        else:
+            logging.error(f"Failed to send email. Status code: {response.status_code}")
+    except Exception as e:
+        logging.error(f"Error occurred while sending email: {str(e)}")
+
+
 def callback(ch, method, properties, body):
     national = body.decode('utf-8')
     image1_binary, image2_binary = get_images_from_s3(national)
     image1_confidence, image1_face_id = face_detection(image1_binary)
     image2_confidence, image2_face_id = face_detection(image2_binary)
+    email_address = get_email(national)
     if image1_confidence < 50 or image2_confidence < 50:
-        if not reject_user(national):
+        if not reject_user(national, email_address):
             logging.error(f"Failed to reject user with national ID: {national}")
     else:
         similarity = face_similarity(image1_face_id, image2_face_id)
         if similarity < 80:
-            if not reject_user(national):
+            if not reject_user(national, email_address):
                 logging.error(f"Failed to reject user with national ID: {national}")
         else:
-            if not accept_user(national):
+            if not accept_user(national, email_address):
                 logging.error(f"Failed to accept user with national ID: {national}")
 
 
