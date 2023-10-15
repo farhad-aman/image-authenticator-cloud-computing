@@ -176,6 +176,7 @@ def send_email(message: str, receiver: str):
 
 def callback(ch, method, properties, body):
     national = body.decode('utf-8')
+    logging.info(f"Processing request with national ID: {national}")
     image1_binary, image2_binary = get_images_from_s3(national)
     image1_confidence, image1_face_id = face_detection(image1_binary)
     image2_confidence, image2_face_id = face_detection(image2_binary)
