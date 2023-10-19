@@ -2,8 +2,8 @@ import base64
 
 import requests
 
-url = "http://localhost:8080/register"
-# url = "http://128.140.100.19:8080/register"
+# url = "http://localhost:8080/register"
+url = "http://128.140.100.19:8080/register"
 
 image1_file = "1.jpg"
 with open(image1_file, 'rb') as image_file:
@@ -12,7 +12,7 @@ image2_file = "5.jpg"
 with open(image2_file, 'rb') as image_file:
     encoded_string2 = base64.b64encode(image_file.read()).decode('utf-8')
 
-national = "2"
+national = "1"
 
 payload = {
     "name": "John Doe",

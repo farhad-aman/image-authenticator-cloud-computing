@@ -44,5 +44,15 @@ func Status(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, user)
+	if user.State == "pending" {
+		return c.String(200, "Your request is pending")
+	} else if user.State == "accepted" {
+		return c.String(200, "Your request is accepted with username: "+datastore.EncodeNationalID(user.National))
+	} else if user.State == "rejected" {
+		return c.String(200, "Your request is rejected")
+	} else {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Internal server error",
+		})
+	}
 }
