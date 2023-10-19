@@ -12,7 +12,7 @@ image2_file = "5.jpg"
 with open(image2_file, 'rb') as image_file:
     encoded_string2 = base64.b64encode(image_file.read()).decode('utf-8')
 
-national = "13"
+national = "2"
 
 payload = {
     "name": "John Doe",

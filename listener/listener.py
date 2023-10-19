@@ -83,11 +83,7 @@ def get_images_from_s3(national: str):
 def init_pg():
     try:
         connection = psycopg2.connect(
-            host=settings.DB_HOST,
-            port=settings.DB_PORT,
-            dbname=settings.DB_NAME,
-            user=settings.DB_USER,
-            password=settings.DB_PASSWORD
+            dsn=settings.PG_DSN
         )
         logging.info("PostgreSQL connection established successfully")
         return connection

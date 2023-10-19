@@ -8,6 +8,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      PG_DSN: postgres://avnadmin:AVNS_oPGfErq0_Hdn06tezKr@farhad-farhadaman7780.a.aivencloud.com:21646/defaultdb?sslmode=require
       DB_HOST: pg
       DB_PORT: 5432
       DB_USER: root
@@ -19,8 +20,8 @@ services:
       S3_ACCESS_KEY: 1f587d9d-0f73-44b0-a244-eb65a38b9fb9
       S3_SECRET_KEY: ea8f9014e2dba906a1e1d16ced994f0ddb567bee05386ccfb13646e58d41263d
       RABBIT_URL: amqps://mihcucyt:XE1vceH1adMHJ1lutXATIm6PI79F7aUl@cow.rmq2.cloudamqp.com/mihcucyt
-    depends_on:
-      - pg
+#    depends_on:
+#      - pg
 
   listener:
     container_name: listener
@@ -28,11 +29,12 @@ services:
       context: listener
       dockerfile: Dockerfile
     environment:
-      DB_HOST: pg
-      DB_PORT: 5432
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: image-authenticator
+      PG_DSN: postgres://avnadmin:AVNS_oPGfErq0_Hdn06tezKr@farhad-farhadaman7780.a.aivencloud.com:21646/defaultdb?sslmode=require
+#      DB_HOST: pg
+#      DB_PORT: 5432
+#      DB_USER: root
+#      DB_PASSWORD: root
+#      DB_NAME: image-authenticator
       S3_BUCKET: image-authenticator
       S3_REGION: default
       S3_ENDPOINT: s3.ir-thr-at1.arvanstorage.ir
@@ -40,19 +42,19 @@ services:
       S3_SECRET_KEY: ea8f9014e2dba906a1e1d16ced994f0ddb567bee05386ccfb13646e58d41263d
       RABBIT_URL: amqps://mihcucyt:XE1vceH1adMHJ1lutXATIm6PI79F7aUl@cow.rmq2.cloudamqp.com/mihcucyt
     depends_on:
-      - pg
+#      - pg
       - publisher
 
-  pg:
-    container_name: pg
-    image: postgres:16
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: image-authenticator
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-volumes:
-  pg_data:
+#  pg:
+#    container_name: pg
+#    image: postgres:16
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_USER: root
+#      POSTGRES_PASSWORD: root
+#      POSTGRES_DB: image-authenticator
+#    volumes:
+#      - pg_data:/var/lib/postgresql/data
+#volumes:
+#  pg_data:
