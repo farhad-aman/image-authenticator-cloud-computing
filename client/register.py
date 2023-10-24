@@ -8,11 +8,11 @@ url = "http://128.140.100.19:8080/register"
 image1_file = "1.jpg"
 with open(image1_file, 'rb') as image_file:
     encoded_string1 = base64.b64encode(image_file.read()).decode('utf-8')
-image2_file = "5.jpg"
+image2_file = "2.jpg"
 with open(image2_file, 'rb') as image_file:
     encoded_string2 = base64.b64encode(image_file.read()).decode('utf-8')
 
-national = "1"
+national = "3"
 
 payload = {
     "name": "John Doe",
